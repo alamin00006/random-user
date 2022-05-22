@@ -3,7 +3,7 @@ const app = express()
 const port = process.env.PORT||5000;
 const cors = require('cors');
 require('dotenv').config()
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 // machinedb
 // KLxxBmspoMOszy09
 app.use(express.json())
@@ -50,11 +50,20 @@ async function run() {
       res.send(result);
     })
 
+    app.get('/parts/:id', async(req, res) =>{
+      const id = req.params.id;
+      
+      const query = {_id:ObjectId(id)};
+      const result =await partsCollection.findOne(query);
+     
+      res.send(result)
 
-    app.get('/user', async(req, res) =>{
-      const users = await userCollection.find().toArray();
-      res.send(users)
   })
+
+  //   app.get('/user', async(req, res) =>{
+  //     const users = await userCollection.find().toArray();
+  //     res.send(users)
+  // })
     // app.put('/user/:email', async(req, res) =>{
     //   const email = req.params.email;
     //   const user = req.body;
@@ -67,6 +76,26 @@ async function run() {
     //   const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
     //   res.send({result, token});
     //   })
+
+  //   app.put('/parts/:id', async(req, res) =>{
+  //     const id = req.params.id;
+  //     const updatedQuantity = req.body;
+  //     // console.log(updatedQuantity)
+  //     const filter = {_id: ObjectId(id)};
+  //     const options = { upsert: true };
+  //     const updatedFinal = {
+  //         $set: {
+  //            quantity:updatedQuantity.quantity
+  //         }
+  //     };
+    
+  //     console.log(updatedFinal)
+  //     const result = await computerCollection.updateOne(filter,updatedFinal, options);
+  //     res.send(result);
+  
+  // })
+
+
 
   } finally {
     
