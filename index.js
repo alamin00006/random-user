@@ -77,23 +77,23 @@ async function run() {
     //   res.send({result, token});
     //   })
 
-  //   app.put('/parts/:id', async(req, res) =>{
-  //     const id = req.params.id;
-  //     const updatedQuantity = req.body;
-  //     // console.log(updatedQuantity)
-  //     const filter = {_id: ObjectId(id)};
-  //     const options = { upsert: true };
-  //     const updatedFinal = {
-  //         $set: {
-  //            quantity:updatedQuantity.quantity
-  //         }
-  //     };
+    app.put('/parts/:id', async(req, res) =>{
+      const id = req.params.id;
+      const updatedQuantity = req.body;
+      console.log(updatedQuantity)
+      const filter = {_id: ObjectId(id)};
+      const options = { upsert: true };
+      const updatedFinal = {
+          $set: {
+            newQuantity:updatedQuantity.quantity
+          }
+      };
     
-  //     console.log(updatedFinal)
-  //     const result = await computerCollection.updateOne(filter,updatedFinal, options);
-  //     res.send(result);
+      console.log(updatedFinal)
+      const result = await partsCollection.updateOne(filter,updatedFinal, options);
+      res.send(result);
   
-  // })
+  })
 
 
 
