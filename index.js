@@ -2,6 +2,8 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT||5000;
 const cors = require('cors');
+const jwt = require('jsonwebtoken');
+
 require('dotenv').config()
 const stripe = require("stripe")(process.env.SECRET_KEY);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -28,7 +30,7 @@ function  verifyJWT(req, res, next){
   const token = authHeader.split(' ')[1];
   // console.log(token)
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
-      console.log(decoded)
+      console.log('decoded',decoded)
       if(err){
           
       return  res.status(403).send({message: "Forbidden access"})
@@ -45,6 +47,7 @@ async function run() {
     await client.connect();
     const partsCollection = client.db('allParts').collection('parts');
     const userCollection = client.db('allParts').collection('users');
+    const orderCollection = client.db('allParts').collection('order');
 
     app.get('/parts', async (req, res) =>{
       const query = {};
@@ -52,21 +55,51 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/create-payment-intent', async (req, res) =>{
+    app.post('/order', async (req, res) =>{
+      const order = req.body;
+      const query = {productName: order.productName}
+      console.log(query)
+      const exists = await orderCollection.findOne(query)
+      if(exists){
+        return res.send({success: false, order:exists})
+      }
+      const result = await orderCollection.insertOne(order);
+     return res.send({success: true,result})
+    })
+
+    app.get('/order', async (req, res) =>{
+      const customer = req.query.customer;
+    })
+
+    // app.post('/create-payment-intent', verifyJWT, async (req, res) =>{
+    //   const service = req.body;
+    //   console.log(service)
+    //   const price = service.price;
+    //   const amount = price*100;
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     amount:amount,
+    //     currency: 'usd',
+    //     payment_method_types : ['card']
+
+    //   });
+    //   res.send({
+    //     clientSecret: paymentIntent.client_secret
+    //   });
+
+    // })
+    app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
       const service = req.body;
       const price = service.price;
       const amount = price*100;
       const paymentIntent = await stripe.paymentIntents.create({
-        amount:amount,
+        amount : amount,
         currency: 'usd',
-        payment_method_types : ['card']
-
+        payment_method_types:['card']
       });
-      res.send({
-        clientSecret: paymentIntent.client_secret
-      });
+      res.send({clientSecret: paymentIntent.client_secret})
+    });
 
-    })
+
     app.get('/parts/:id', async(req, res) =>{
       const id = req.params.id;
       const query = {_id:ObjectId(id)};
@@ -79,18 +112,18 @@ async function run() {
   //     const users = await userCollection.find().toArray();
   //     res.send(users)
   // })
-    // app.put('/user/:email', async(req, res) =>{
-    //   const email = req.params.email;
-    //   const user = req.body;
-    //   const filter = {email: email};
-    //   const options = {upsert: true}
-    //   const updateDoc ={
-    //       $set: user
-    //   };
-    //   const result = await userCollection.updateOne(filter, updateDoc, options);
-    //   const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
-    //   res.send({result, token});
-    //   })
+    app.put('/user/:email', async(req, res) =>{
+      const email = req.params.email;
+      const user = req.body;
+      const filter = {email: email};
+      const options = {upsert: true}
+      const updateDoc ={
+          $set: user
+      };
+      const result = await userCollection.updateOne(filter, updateDoc, options);
+      const token = jwt.sign({email: email}, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+      res.send({result, token});
+      })
 
     app.put('/parts/:id', async(req, res) =>{
       const id = req.params.id;
