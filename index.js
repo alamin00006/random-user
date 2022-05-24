@@ -67,11 +67,18 @@ async function run() {
      return res.send({success: true,result})
     })
 
-    app.get('/order', async (req, res) =>{
+    app.get('/order', verifyJWT, async (req, res) =>{
       const customer = req.query.customer;
+     const decodedEmail = req.decoded.email;
+     if(customer === decodedEmail){
       const query = {customer: customer};
       const order = await orderCollection.find(query).toArray();
-      res.send(order)
+     return res.send(order)
+     }
+     else{
+      return  res.status(403).send({message: "Forbidden access"})
+     }
+      
     })
 
     // app.post('/create-payment-intent', verifyJWT, async (req, res) =>{
@@ -97,7 +104,7 @@ async function run() {
       const paymentIntent = await stripe.paymentIntents.create({
         amount : amount,
         currency: 'usd',
-        payment_method_types:['card']
+        payment_method_types: ['card']
       });
       res.send({clientSecret: paymentIntent.client_secret})
     });
@@ -115,6 +122,36 @@ async function run() {
   //     const users = await userCollection.find().toArray();
   //     res.send(users)
   // })
+  app.get('/user' , verifyJWT, async (req, res) =>{
+    const user = await userCollection.find().toArray();
+    res.send(user)
+  })
+
+  app.get('/admin/:email', async (req, res) =>{
+    const email = req.params.email;
+    const user = await userCollection.findOne({email:email})
+    const isAdmin = user.role === 'admin';
+    console.log('admin',isAdmin)
+    res.send(isAdmin)
+  })
+
+    app.put('/user/admin/:email', verifyJWT, async(req, res) =>{
+      const email = req.params.email;
+      const requesterAdmin = req.decoded.email;
+      const requesterAccount = await userCollection.findOne({email: requesterAdmin})
+      if(requesterAccount.role === 'admin'){
+        const filter = {email: email};
+    const updateDoc ={
+          $set: {role : 'admin'}
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+     return res.send(result);
+      }
+     else{
+      return  res.status(403).send({message: "Forbidden access"})
+     }
+      })
+
     app.put('/user/:email', async(req, res) =>{
       const email = req.params.email;
       const user = req.body;
