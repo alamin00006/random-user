@@ -5,7 +5,7 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
 require('dotenv').config()
-const stripe = require("stripe")(process.env.SECRET_KEY);
+const stripe = require("stripe")(process.env.STRIPE_SECRET_TEST);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
 // machinedb
@@ -48,6 +48,7 @@ async function run() {
     const partsCollection = client.db('allParts').collection('parts');
     const userCollection = client.db('allParts').collection('users');
     const orderCollection = client.db('allParts').collection('order');
+    const paymentCollection = client.db('allParts').collection('payment');
 
     app.get('/parts', async (req, res) =>{
       const query = {};
@@ -55,14 +56,8 @@ async function run() {
       res.send(result);
     })
 
-    app.post('/order', async (req, res) =>{
+    app.post('/order', verifyJWT, async (req, res) =>{
       const order = req.body;
-      // const query = {customerName: order.customerName}
-      // console.log(query)
-      // const exists = await orderCollection.findOne(query)
-      // if(exists){
-      //   return res.send({success: false, order:exists})
-      // }
       const result = await orderCollection.insertOne(order);
      return res.send({success: true,result})
     })
@@ -81,42 +76,58 @@ async function run() {
       
     })
 
-    // app.post('/create-payment-intent', verifyJWT, async (req, res) =>{
-    //   const service = req.body;
-    //   console.log(service)
-    //   const price = service.price;
-    //   const amount = price*100;
-    //   const paymentIntent = await stripe.paymentIntents.create({
-    //     amount:amount,
-    //     currency: 'usd',
-    //     payment_method_types : ['card']
-
-    //   });
-    //   res.send({
-    //     clientSecret: paymentIntent.client_secret
-    //   });
-
-    // })
-    app.post('/create-payment-intent', verifyJWT, async(req, res) =>{
+    app.post('/create-payment-intent', verifyJWT, async (req, res) =>{
       const service = req.body;
+      console.log(service)
       const price = service.price;
       const amount = price*100;
       const paymentIntent = await stripe.paymentIntents.create({
-        amount : amount,
+        amount:amount,
         currency: 'usd',
-        payment_method_types: ['card']
+        payment_method_types :['card']
+
       });
-      res.send({clientSecret: paymentIntent.client_secret})
-    });
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      });
 
+    })
 
-    app.get('/parts/:id', async(req, res) =>{
+    
+    app.get('/parts/:id', verifyJWT, async(req, res) =>{
       const id = req.params.id;
+      console.log('id',id)
       const query = {_id:ObjectId(id)};
       const result =await partsCollection.findOne(query);
+      console.log(result)
         res.send(result)
 
   })
+    app.get('/orders/:id', verifyJWT, async(req, res) =>{
+      const id = req.params.id;
+      console.log('id',id)
+      const query = {_id:ObjectId(id)};
+      const result =await orderCollection.findOne(query);
+      console.log(result)
+        res.send(result)
+
+  })
+  app.patch('/orders/:id', verifyJWT, async(req, res) =>{
+    const id  = req.params.id;
+    const payment = req.body;
+    const filter = {_id: ObjectId(id)};
+    const updatedDoc = {
+      $set: {
+        paid: true,
+        transactionId: payment.transactionId
+      }
+    }
+
+    const result = await paymentCollection.insertOne(payment);
+    const updatedOrderd = await orderCollection.updateOne(filter, updatedDoc);
+    res.send(updatedOrderd);
+  })
+
 
   //   app.get('/user', async(req, res) =>{
   //     const users = await userCollection.find().toArray();
@@ -124,6 +135,7 @@ async function run() {
   // })
   app.get('/user' , verifyJWT, async (req, res) =>{
     const user = await userCollection.find().toArray();
+    console.log(user)
     res.send(user)
   })
 
@@ -154,7 +166,7 @@ async function run() {
      }
       })
 
-    app.put('/user/:email', async(req, res) =>{
+    app.put('/user/:email',  async(req, res) =>{
       const email = req.params.email;
       const user = req.body;
       const filter = {email: email};
