@@ -129,11 +129,13 @@ async function run() {
 
   app.get('/admin/:email', async (req, res) =>{
     const email = req.params.email;
+    console.log('email',email)
     const user = await userCollection.findOne({email:email})
     const isAdmin = user.role === 'admin';
-    console.log('admin',isAdmin)
-    res.send(isAdmin)
+    console.log('admin',user.role)
+    res.send({ admin: isAdmin })
   })
+  
 
     app.put('/user/admin/:email', verifyJWT, async(req, res) =>{
       const email = req.params.email;
