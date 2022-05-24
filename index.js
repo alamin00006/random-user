@@ -20,7 +20,9 @@ app.get('/', (req, res) => {
 const uri = "mongodb+srv://machinedb:KLxxBmspoMOszy09@cluster0.csluy.mongodb.net/?retryWrites=true&w=majority";
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
+// https://machine-parts.web.app/
 
+// https://polar-journey-49848.herokuapp.com
 
 function  verifyJWT(req, res, next){
   const authHeader = req.headers.authorization;
