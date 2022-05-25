@@ -146,6 +146,7 @@ async function run() {
     const updatedDoc = {
       $set: {
         paid: true,
+        status: 'pending',
         transactionId: payment.transactionId
       }
     }
@@ -157,9 +158,16 @@ async function run() {
 
   app.delete('/order/:id', async(req, res) =>{
     const id = req.params.id;
-    console.log(id)
     const query = {_id:ObjectId(id)};
     const result =await orderCollection.deleteOne(query);
+   
+    res.send(result)
+
+})
+  app.delete('/parts/:id', async(req, res) =>{
+    const id = req.params.id;
+    const query = {_id:ObjectId(id)};
+    const result =await partsCollection.deleteOne(query);
    
     res.send(result)
 
@@ -230,6 +238,26 @@ async function run() {
     
       console.log(updatedFinal)
       const result = await partsCollection.updateOne(filter,updatedFinal, options);
+      res.send(result);
+  
+  })
+
+
+    app.put('/order/:id', async(req, res) =>{
+      const id = req.params.id;
+      // const updatedQuantity = req.body;
+      const updatedStatus = req.body;
+     
+      const filter = {_id: ObjectId(id)};
+      const options = { upsert: true };
+      const updatedFinal = {
+          $set: {
+            status: updatedStatus.status
+          }
+      };
+    
+      console.log(updatedFinal)
+      const result = await orderCollection.updateOne(filter,updatedFinal, options);
       res.send(result);
   
   })
