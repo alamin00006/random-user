@@ -70,6 +70,12 @@ async function run() {
   
       res.send(result);
     })
+    app.post('/reviews', async(req, res) =>{
+      const newItem = req.body;
+      const result = await reviewsCollection.insertOne(newItem);
+  
+      res.send(result);
+    })
 
     app.post('/order', verifyJWT, async (req, res) =>{
       const order = req.body;
