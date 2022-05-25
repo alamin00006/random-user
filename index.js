@@ -30,7 +30,7 @@ function  verifyJWT(req, res, next){
       return res.status(401).send({message: 'UnAthorized access'})
   }
   const token = authHeader.split(' ')[1];
-  // console.log(token)
+ 
   jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function(err, decoded) {
       console.log('decoded',decoded)
       if(err){
@@ -51,10 +51,23 @@ async function run() {
     const userCollection = client.db('allParts').collection('users');
     const orderCollection = client.db('allParts').collection('order');
     const paymentCollection = client.db('allParts').collection('payment');
+    const reviewsCollection = client.db('allParts').collection('reviews');
 
     app.get('/parts', async (req, res) =>{
       const query = {};
       const result = await partsCollection.find(query).toArray();
+      res.send(result);
+    })
+    app.get('/reviews', async (req, res) =>{
+      const query = {};
+      const result = await reviewsCollection.find(query).toArray();
+      res.send(result);
+    })
+
+    app.post('/parts', async(req, res) =>{
+      const newItem = req.body;
+      const result = await partsCollection.insertOne(newItem);
+  
       res.send(result);
     })
 
