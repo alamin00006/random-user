@@ -52,6 +52,7 @@ async function run() {
     const orderCollection = client.db('allParts').collection('order');
     const paymentCollection = client.db('allParts').collection('payment');
     const reviewsCollection = client.db('allParts').collection('reviews');
+    const profileCollection = client.db('allParts').collection('profile');
 
     app.get('/parts', async (req, res) =>{
       const query = {};
@@ -224,6 +225,8 @@ async function run() {
       res.send({result, token});
       })
 
+  
+
     app.put('/parts/:id', async(req, res) =>{
       const id = req.params.id;
       const updatedQuantity = req.body;
@@ -254,6 +257,21 @@ async function run() {
           $set: {
             status: updatedStatus.status
           }
+      };
+    
+      console.log(updatedFinal)
+      const result = await orderCollection.updateOne(filter,updatedFinal, options);
+      res.send(result);
+  
+  })
+    app.put('/profile', async(req, res) =>{
+    
+      const updatedStatus = req.body;
+     
+      const filter = {};
+      const options = { upsert: true };
+      const updatedFinal = {
+          $set: updatedStatus
       };
     
       console.log(updatedFinal)
