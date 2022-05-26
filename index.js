@@ -8,8 +8,7 @@ require('dotenv').config()
 const stripe = require("stripe")(process.env.STRIPE_SECRET_TEST);
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 
-// machinedb
-// KLxxBmspoMOszy09
+
 app.use(express.json())
 app.use(cors())
 
@@ -17,12 +16,9 @@ app.get('/', (req, res) => {
   res.send('Hello World!')
 })
 
-const uri = "mongodb+srv://machinedb:KLxxBmspoMOszy09@cluster0.csluy.mongodb.net/?retryWrites=true&w=majority";
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.csluy.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 
-// https://machine-parts.web.app/
-
-// https://polar-journey-49848.herokuapp.com
 
 function  verifyJWT(req, res, next){
   const authHeader = req.headers.authorization;
