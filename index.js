@@ -18,7 +18,9 @@ app.get('/', (req, res) => {
 
 const uri = 'mongodb+srv://machinedb:KLxxBmspoMOszy09@cluster0.csluy.mongodb.net/?retryWrites=true&w=majority';
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
-
+async function run() {
+  try {
+    await client.connect();
     const partsCollection = client.db('allParts').collection('parts');
     const userCollection = client.db('allParts').collection('users');
     const orderCollection = client.db('allParts').collection('order');
