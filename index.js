@@ -2,15 +2,19 @@ const express = require('express')
 const app = express()
 const port = process.env.PORT||5000;
 const cors = require('cors');
-// const toolsRouter = require('./routes/v1/tools.route');
+
 const userRouter = require('./routes/v1/users.route');
 
 app.use(express.json())
 app.use(cors())
 
 
-// app.use('/api/v1/tools', toolsRouter);
-app.use('/api/v1/users', userRouter);
+
+app.use('/api/v1/user/all', userRouter);
+app.use('/api/v1/user/save', userRouter);
+app.use('/api/v1/user/update', userRouter);
+app.use('/api/v1/user/delete', userRouter);
+app.use('/api/v1/user/', userRouter);
 
 
 app.all('*',(req, res) =>{
