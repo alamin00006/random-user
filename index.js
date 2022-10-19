@@ -9,7 +9,6 @@ app.use(express.json())
 app.use(cors())
 
 
-
 app.use('/api/v1/user/all', userRouter);
 app.use('/api/v1/user/save', userRouter);
 app.use('/api/v1/user/update', userRouter);
